@@ -1,1 +1,138 @@
-asd
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自动播放视频</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            overflow: hidden;
+        }
+        .video-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #videoPlayer {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .autoplay-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+        }
+        #playButton {
+            background: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        @media (max-width: 768px) {
+            #videoPlayer {
+                object-fit: contain;
+            }
+        }
+        #videoPlayer:fullscreen {
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body>
+    <div class="video-container">
+        <video id="videoPlayer" playsinline muted loop>
+            <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" type="video/mp4">
+            您的浏览器不支持视频播放
+        </video>
+    </div>
+    <div id="autoplayMessage" class="autoplay-message">
+        <h3>点击播放视频</h3>
+        <button id="playButton">播放</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const video = document.getElementById('videoPlayer');
+            const autoplayMessage = document.getElementById('autoplayMessage');
+            const playButton = document.getElementById('playButton');
+
+            // 尝试自动播放
+            async function attemptAutoplay() {
+                try {
+                    await video.play();
+                    requestFullscreen();
+                } catch (error) {
+                    console.log('自动播放失败:', error);
+                    autoplayMessage.style.display = 'block';
+                }
+            }
+
+            // 请求全屏
+            function requestFullscreen() {
+                if (video.requestFullscreen) {
+                    video.requestFullscreen().catch(err => {
+                        console.log('全屏请求失败:', err);
+                    });
+                } else if (video.webkitRequestFullscreen) {
+                    video.webkitRequestFullscreen();
+                } else if (video.msRequestFullscreen) {
+                    video.msRequestFullscreen();
+                }
+            }
+
+            // 当视频加载完成时尝试自动播放
+            video.addEventListener('loadeddata', attemptAutoplay);
+
+            // 播放按钮点击处理
+            playButton.addEventListener('click', async () => {
+                autoplayMessage.style.display = 'none';
+                try {
+                    await video.play();
+                    requestFullscreen();
+                } catch (error) {
+                    console.error('播放失败:', error);
+                }
+            });
+
+            // 处理移动设备触摸事件
+            video.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (video.paused) {
+                    video.play().then(() => {
+                        requestFullscreen();
+                    }).catch(error => {
+                        console.error('触摸播放失败:', error);
+                    });
+                }
+            });
+
+            // 处理移动设备方向变化
+            window.addEventListener('orientationchange', () => {
+                setTimeout(() => {
+                    window.dispatchEvent(new Event('resize'));
+                }, 100);
+            });
+        });
+    </script>
+</body>
+</html>
