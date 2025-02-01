@@ -80,6 +80,7 @@
             async function attemptAutoplay() {
                 try {
                     await video.play();
+                    video.volume = 1;  // 设置最大音量
                     requestFullscreen();
                 } catch (error) {
                     console.log('自动播放失败:', error);
